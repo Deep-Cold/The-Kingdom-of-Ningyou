@@ -183,3 +183,58 @@ dialog.addEventListener("close", () => {
   opener?.focus({ preventScroll: true });
   closing = false;
 });
+
+const canInspect = matchMedia("(hover: hover) and (pointer: fine)").matches
+  && !matchMedia("(prefers-reduced-motion: reduce)").matches;
+if (canInspect) {
+  const inspectSelector = [
+    ".celestial-card",
+    ".phenomenon-card",
+    ".term-strip article",
+    ".place-feature",
+    ".place-card",
+    ".remote-place",
+    ".character-card",
+    ".faction",
+    ".house-card"
+  ].join(",");
+
+  function resetInspect(card) {
+    card.classList.remove("is-inspecting");
+    card.style.removeProperty("--px");
+    card.style.removeProperty("--py");
+    card.style.removeProperty("--rx");
+    card.style.removeProperty("--ry");
+  }
+
+  document.querySelectorAll(inspectSelector).forEach(card => {
+    card.classList.add("inspectable");
+    let frame = 0;
+    card.addEventListener("pointermove", event => {
+      if (event.pointerType !== "mouse") return;
+      const rect = card.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width;
+      const y = (event.clientY - rect.top) / rect.height;
+      if (frame) cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        const limit = Math.min(4.2, 1100 / Math.max(rect.width, rect.height));
+        card.classList.add("is-inspecting");
+        card.style.setProperty("--px", `${(x * 100).toFixed(2)}%`);
+        card.style.setProperty("--py", `${(y * 100).toFixed(2)}%`);
+        card.style.setProperty("--rx", `${((x - 0.5) * 2 * limit).toFixed(2)}deg`);
+        card.style.setProperty("--ry", `${((0.5 - y) * 2 * limit).toFixed(2)}deg`);
+      });
+    });
+    card.addEventListener("pointerleave", () => {
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
+      resetInspect(card);
+    });
+    card.addEventListener("blur", () => resetInspect(card));
+  });
+
+  dialog.addEventListener("close", () => {
+    document.querySelectorAll(".is-inspecting").forEach(resetInspect);
+  });
+}
