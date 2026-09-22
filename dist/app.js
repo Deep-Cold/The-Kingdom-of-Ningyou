@@ -201,8 +201,6 @@ if (canInspect) {
 
   function resetInspect(card) {
     card.classList.remove("is-inspecting");
-    card.style.removeProperty("--px");
-    card.style.removeProperty("--py");
     card.style.removeProperty("--rx");
     card.style.removeProperty("--ry");
   }
@@ -218,10 +216,8 @@ if (canInspect) {
       if (frame) cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         frame = 0;
-        const limit = Math.min(4.2, 1100 / Math.max(rect.width, rect.height));
+        const limit = 3.6;
         card.classList.add("is-inspecting");
-        card.style.setProperty("--px", `${(x * 100).toFixed(2)}%`);
-        card.style.setProperty("--py", `${(y * 100).toFixed(2)}%`);
         card.style.setProperty("--rx", `${((x - 0.5) * 2 * limit).toFixed(2)}deg`);
         card.style.setProperty("--ry", `${((0.5 - y) * 2 * limit).toFixed(2)}deg`);
       });
